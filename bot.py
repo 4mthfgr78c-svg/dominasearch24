@@ -6,8 +6,8 @@ from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 from dotenv import load_dotenv
 
 load_dotenv()
-BOT_TOKEN = os.getenv("BOT_TOKEN")
-bot = Bot(token=BOT_TOKEN)
+TG_TOKEN = os.getenv("TG_TOKEN")
+bot = Bot(token=TG_TOKEN)
 dp = Dispatcher()
 
 # Кнопки главного меню
@@ -33,7 +33,7 @@ async def my_profile(message: types.Message):
 
 @dp.message(lambda msg: msg.text == "📋 Список участников")
 async def list_profiles(message: types.Message):
-    await message.answer("Список участников появятся позже.")
+    await message.answer("Список участников появится позже.")
 
 async def main():
     await dp.start_polling(bot)
