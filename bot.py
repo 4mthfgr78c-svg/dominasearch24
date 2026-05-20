@@ -1,42 +1,37 @@
-import asyncio
-import os
-from aiogram import Bot, Dispatcher, types
-from aiogram.filters import Command
-from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
-from dotenv import load_dotenv
+# ========== ДОБАВИТЬ В БАЗУ ТАБЛИЦЫ ==========
+# users: user_id, username, name, gender
+# likes: from_user, to_user, status
+# matches: user1, user2
 
-load_dotenv()
-TG_TOKEN = os.getenv("TG_TOKEN")
-bot = Bot(token=TG_TOKEN)
-dp = Dispatcher()
+# ========== РЕГИСТРАЦИЯ ==========
+@router.message(F.text == "/start")
+async def start(msg, state):
+    if not msg.from_user.username:
+        await msg.answer("❌ Задайте username в Telegram и нажмите /start")
+        return
+    # проверка регистрации, затем запрос имени и пола
 
-# Кнопки главного меню
-main_kb = ReplyKeyboardMarkup(
-    keyboard=[
-        [KeyboardButton(text="🔍 Анкета дня")],
-        [KeyboardButton(text="✏️ Моя анкета"), KeyboardButton(text="📋 Список участников")]
-    ],
-    resize_keyboard=True
-)
+# ========== ПОИСК (только противоположный пол) ==========
+@router.message(F.text == "/search")
+async def search(msg):
+    my_gender = получить_пол(msg.from_user.id)
+    target_gender = 'ж' if my_gender == 'м' else 'м'
+    # выборка анкет: чужой пол, не пролайканных, не из matches
+    # вывод первой анкеты с кнопками "Лайк" и "Следующая"
 
-@dp.message(Command("start"))
-async def start(message: types.Message):
-    await message.answer("Привет! Это бот знакомств. Выбери действие:", reply_markup=main_kb)
+# ========== ЛАЙК ==========
+@router.callback_query(F.data.startswith("like_"))
+async def like(call):
+    from_user = call.from_user.id
+    to_user = int(call.data.split("_")[1])
+    # записать лайк в таблицу likes (status='pending')
+    # проверить встречный лайк: если есть, создать взаимку (matches, статус 'matched')
+    # уведомить обоих о взаимности
+    # для девушек: просто сохранить лайк, для парней: ждать взаимности
 
-@dp.message(lambda msg: msg.text == "🔍 Анкета дня")
-async def daily_profile(message: types.Message):
-    await message.answer("Пока здесь заглушка. Позже покажу случайную анкету.")
-
-@dp.message(lambda msg: msg.text == "✏️ Моя анкета")
-async def my_profile(message: types.Message):
-    await message.answer("Редактирование анкеты. Заполни: возраст, город, о себе. Скоро сделаю.")
-
-@dp.message(lambda msg: msg.text == "📋 Список участников")
-async def list_profiles(message: types.Message):
-    await message.answer("Список участников появится позже.")
-
-async def main():
-    await dp.start_polling(bot)
-
-if __name__ == "__main__":
-    asyncio.run(main())
+# ========== КТО МЕНЯ ЛАЙКНУЛ (только для девушек) ==========
+@router.message(F.text == "/my_likes")
+async def my_likes(msg):
+    if пол != 'ж': return await msg.answer("Только для девушек")
+    # показать список username из likes где to_user = msg.from_user и status='pending'
+    # кнопка "Написать" (можно через /msg @username)
