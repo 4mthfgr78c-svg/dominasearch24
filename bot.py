@@ -1,4 +1,3 @@
-```python
 import sqlite3
 from aiogram import Bot, Dispatcher, types, F
 from aiogram.fsm import State, StatesGroup
@@ -351,4 +350,3 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
-```
